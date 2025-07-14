@@ -36,7 +36,7 @@ def generate_plan(subjects, priority, hours):
   }
 
   payload = {
-      "model": "meta-llama/llama-3.1-8b-instruct:free",
+      "model": "openai/gpt-3.5-turbo",
       "messages": [{
           "role": "user",
           "content": prompt
