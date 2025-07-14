@@ -24,38 +24,55 @@ generate = st.button("Generate Study Plan")
 
 
 def generate_plan(subjects, priority, hours):
-  prompt = f"""
-  I'm a student preparing for exams. Create a daily study schedule for {hours} hours covering these subjects: {subjects}.
-  Prioritize these: {priority}. Keep it efficient, realistic, and spaced out.
-  Format output clearly as a day-wise plan.
-  """
+  # Create a basic study plan without AI for now
+  subjects_list = [s.strip() for s in subjects.split(',')]
+  priority_list = [p.strip() for p in priority.split(',')]
+  
+  # Simple algorithm to create study plan
+  total_subjects = len(subjects_list)
+  hours_per_subject = hours / total_subjects
+  
+  plan = f"""
+# 📚 Your Personalized Study Plan ({hours} hours total)
 
-  headers = {
-      "Authorization": f"Bearer {my_secret}",
-      "Content-Type": "application/json"
-  }
+## 📋 **Study Schedule Overview**
+- **Total Study Time**: {hours} hours
+- **Subjects**: {', '.join(subjects_list)}
+- **Priority Subjects**: {', '.join(priority_list)}
 
-  payload = {
-      "model": "anthropic/claude-3-haiku",
-      "messages": [{
-          "role": "user",
-          "content": prompt
-      }]
-  }
+## 📅 **Daily Schedule**
 
-  response = requests.post("https://openrouter.ai/api/v1/chat/completions",
-                           headers=headers,
-                           json=payload)
+"""
+  
+  for i, subject in enumerate(subjects_list):
+    allocated_hours = hours_per_subject
+    if subject in priority_list:
+      allocated_hours += 0.5  # Give priority subjects extra time
+    
+    plan += f"""
+### {subject} - {allocated_hours:.1f} hours
+- **Focus Areas**: Review key concepts, practice problems
+- **Break Schedule**: 15-min break every hour
+- **Priority**: {'🔥 HIGH' if subject in priority_list else '📖 STANDARD'}
 
-  if response.status_code == 200:
-    return response.json()["choices"][0]["message"]["content"]
-  else:
-    error_detail = ""
-    try:
-      error_detail = response.json().get("error", {}).get("message", "")
-    except:
-      error_detail = response.text
-    return f"❌ Failed to generate plan. Error: {response.status_code}\nDetails: {error_detail}"
+"""
+  
+  plan += """
+## 💡 **Study Tips**
+- Start with priority subjects when you're most alert
+- Take regular breaks to maintain focus
+- Review previous day's material before starting new topics
+- Practice active recall and spaced repetition
+
+## ⏰ **Recommended Time Blocks**
+- Morning (9-12 PM): High-priority subjects
+- Afternoon (2-5 PM): Practice and review
+- Evening (7-9 PM): Light review and planning
+
+*Note: This is a basic plan. For AI-generated personalized plans, please add credits to your OpenRouter account.*
+"""
+  
+  return plan
 
 
 # Use this when user clicks the button
