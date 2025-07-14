@@ -36,7 +36,7 @@ def generate_plan(subjects, priority, hours):
   }
 
   payload = {
-      "model": "openai/gpt-3.5-turbo",
+      "model": "anthropic/claude-3-haiku",
       "messages": [{
           "role": "user",
           "content": prompt
