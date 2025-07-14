@@ -36,7 +36,7 @@ def generate_plan(subjects, priority, hours):
   }
 
   payload = {
-      "model": "openai/gpt-3.5-turbo",
+      "model": "meta-llama/llama-3.1-8b-instruct:free",
       "messages": [{
           "role": "user",
           "content": prompt
@@ -50,7 +50,12 @@ def generate_plan(subjects, priority, hours):
   if response.status_code == 200:
     return response.json()["choices"][0]["message"]["content"]
   else:
-    return f"❌ Failed to generate plan. Error: {response.status_code}"
+    error_detail = ""
+    try:
+      error_detail = response.json().get("error", {}).get("message", "")
+    except:
+      error_detail = response.text
+    return f"❌ Failed to generate plan. Error: {response.status_code}\nDetails: {error_detail}"
 
 
 # Use this when user clicks the button
