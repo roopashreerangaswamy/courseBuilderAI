@@ -5,7 +5,6 @@ import os
 my_secret = os.environ['OPEN_ROUTER_API']
 if not my_secret:
   raise ValueError("OPEN_ROUTER_API key not found in environment variables!")
-print(os.environ.get("OPEN_ROUTER_API"))
 
 st.set_page_config(page_title="Smart Study Planner", layout="centered")
 
@@ -37,7 +36,7 @@ def generate_plan(subjects, priority, hours):
   }
 
   payload = {
-      "model": "google/gemini-pro",  # or another OpenRouter-supported model
+      "model": "openai/gpt-3.5-turbo",
       "messages": [{
           "role": "user",
           "content": prompt
