@@ -32,7 +32,7 @@ def generate_plan(subjects, priority, hours):
   """
 
   headers = {
-      "Authorization": "Bearer my_secret",
+      "Authorization": f"Bearer {my_secret}",
       "Content-Type": "application/json"
   }
 
