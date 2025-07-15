@@ -1,86 +1,97 @@
 import streamlit as st
 import requests
 import os
+import streamlit_authenticator as stauth
 
-my_secret = os.environ['OPEN_ROUTER_API']
-if not my_secret:
-  raise ValueError("OPEN_ROUTER_API key not found in environment variables!")
+# Example list of users (in real apps, load from MongoDB)
+users = {
+    "roopa": {
+        "name": "Roopashree",
+        "password": stauth.Hasher(["test123"]).generate()[0]  # hashed password
+    },
+    "jane": {
+        "name": "Jane Doe",
+        "password": stauth.Hasher(["hello456"]).generate()[0]
+    }
+}
 
-st.set_page_config(page_title="Smart Study Planner", layout="centered")
-
+st.set_page_config(page_title="📚 Smart Study Planner", layout="centered")
 st.title("📚 Smart Study Planner")
-st.write("Get a personalized study schedule using AI!")
 
-# Input Fields
-study_hours = st.number_input("📅 Total Study Time (in hours)",
-                              min_value=1,
-                              value=5)
-subjects = st.text_area("📖 Subjects (comma-separated)",
-                        placeholder="e.g., Math, Physics, Chemistry")
-priority = st.text_area("🔥 Priority Subjects (comma-separated)",
-                        placeholder="e.g., Physics")
+api_key = os.environ.get("OPEN_ROUTER_API")
+if not api_key:
+    st.error("❌ API key missing.")
+    st.stop()
 
-generate = st.button("Generate Study Plan")
+# New Inputs for Course Planner
+topic = st.text_input("📚 Learning Topic", placeholder="e.g., Web Development")
+duration = st.selectbox("📅 Duration (in days)", [7, 15, 30, 60])
+goal = st.text_input("🎯 Final Goal", placeholder="e.g., Get internship-ready")
+difficulty = st.selectbox("⚙️ Difficulty Level", ["Beginner", "Intermediate", "Advanced"])
 
-
-def generate_plan(subjects, priority, hours):
-  # Create a basic study plan without AI for now
-  subjects_list = [s.strip() for s in subjects.split(',')]
-  priority_list = [p.strip() for p in priority.split(',')]
-  
-  # Simple algorithm to create study plan
-  total_subjects = len(subjects_list)
-  hours_per_subject = hours / total_subjects
-  
-  plan = f"""
-# 📚 Your Personalized Study Plan ({hours} hours total)
-
-## 📋 **Study Schedule Overview**
-- **Total Study Time**: {hours} hours
-- **Subjects**: {', '.join(subjects_list)}
-- **Priority Subjects**: {', '.join(priority_list)}
-
-## 📅 **Daily Schedule**
-
-"""
-  
-  for i, subject in enumerate(subjects_list):
-    allocated_hours = hours_per_subject
-    if subject in priority_list:
-      allocated_hours += 0.5  # Give priority subjects extra time
-    
-    plan += f"""
-### {subject} - {allocated_hours:.1f} hours
-- **Focus Areas**: Review key concepts, practice problems
-- **Break Schedule**: 15-min break every hour
-- **Priority**: {'🔥 HIGH' if subject in priority_list else '📖 STANDARD'}
-
-"""
-  
-  plan += """
-## 💡 **Study Tips**
-- Start with priority subjects when you're most alert
-- Take regular breaks to maintain focus
-- Review previous day's material before starting new topics
-- Practice active recall and spaced repetition
-
-## ⏰ **Recommended Time Blocks**
-- Morning (9-12 PM): High-priority subjects
-- Afternoon (2-5 PM): Practice and review
-- Evening (7-9 PM): Light review and planning
-
-*Note: This is a basic plan. For AI-generated personalized plans, please add credits to your OpenRouter account.*
-"""
-  
-  return plan
+generate = st.button("Generate Course Plan")
 
 
-# Use this when user clicks the button
+def generate_course_plan(topic, goal, difficulty, duration):
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://smartstudyplanner.replit.app",  # Optional
+        "X-Title": "SmartCourseBuilder"
+    }
+
+    prompt = (
+        f"You are an AI-powered course builder. Create a structured course on '{topic}' for a {difficulty} level learner."
+        f"\nThe goal is: {goal} and the learner has {duration} days."
+        f"\nBreak the course into 5–7 modules. For each module:"
+        f"\n- Give a clear title"
+        f"\n- Write a short description"
+        f"\n- Provide 2–3 FREE learning resources with titles, links, and short notes."
+        f"\nUse markdown format for links: [Resource Title](https://example.com)"
+        f"\nInclude only free resources (like YouTube, FreeCodeCamp, GitHub, MDN, W3Schools, etc.)"
+        f"\nAvoid paid or login-required links. Keep it beginner-friendly and self-paced."
+    )
+
+    payload = {
+        "model": "deepseek/deepseek-chat-v3-0324:free",  # You can use any good free-tier model here
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    }
+
+    try:
+        response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
+        if response.status_code == 200:
+            return response.json()["choices"][0]["message"]["content"]
+        else:
+            st.error(f"❌ Failed to generate course. Error: {response.status_code} — {response.text}")
+            return None
+    except Exception as e:
+        st.error(f"❌ Exception occurred: {e}")
+        return None
+
+        
 if generate:
-  if not subjects or not priority:
-    st.warning("Please fill all fields.")
-  else:
-    with st.spinner("Generating your smart study plan..."):
-      result = generate_plan(subjects, priority, study_hours)
-      st.success("✅ Study Plan Ready!")
-      st.markdown(result)
+    if not topic or not goal:
+        st.warning("⚠️ Please fill in all fields.")
+    else:
+        with st.spinner("🧠 Generating your personalized course plan..."):
+            result = generate_course_plan(topic, goal, difficulty, duration)
+            if result:
+                st.success("✅ Course Plan Ready!")
+
+                # Try to split modules based on numbering (e.g., '1.', '2.', etc.)
+                import re
+                modules = re.split(r'\n\d+\.\s+', result)
+
+                # Skip any leading text before the first module
+                for module in modules[1:]:
+                    lines = module.strip().split('\n', 1)
+                    title = lines[0].strip()
+                    content = lines[1] if len(lines) > 1 else ""
+
+                    with st.expander(f"📘 {title}"):
+                        st.markdown(content, unsafe_allow_html=True)
+
+
+    
