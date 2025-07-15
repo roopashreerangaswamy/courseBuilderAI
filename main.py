@@ -6,7 +6,7 @@ import streamlit_authenticator as stauth
 # Example list of users (in real apps, load from MongoD
 # ✅ Corrected: Hash both passwords first
 hasher = stauth.Hasher()
-hashed_passwords = hasher.generate(['test123'])
+hashed_passwords = hasher.hash('test123')
 
 # ✅ Then set up your user credentials
 credentials = {
@@ -25,15 +25,26 @@ authenticator = stauth.Authenticate(credentials,
                                     "auth_token",
                                     cookie_expiry_days=1)
 
-name, authentication_status, username = authenticator.login("Login", "main")
+login = authenticator.login("Login", location="sidebar")
+if login:
+    name, authentication_status, username = login
+    if authentication_status is False:
+        st.error("Username/password is incorrect")
 
-if authentication_status is False:
-    st.error("Username/password is incorrect")
-elif authentication_status is None:
-    st.warning("Please enter your username and password")
-elif authentication_status:
-    authenticator.logout("Logout", "sidebar")
-    st.sidebar.success(f"Logged in as {name}")
+    elif authentication_status is None:
+        st.warning("Please enter your username and password")
+
+    elif authentication_status:
+        authenticator.logout("Logout", "sidebar")
+        st.sidebar.success(f"✅ Logged in as {name}")
+
+    # 🔽 Place your full Streamlit app code under this block
+
+
+    # 🔽 Place your full Streamlit app code under this block
+
+
+    
 
     # Your main app code goes here ↓↓↓
     st.set_page_config(page_title="📚 Smart Study Planner", layout="centered")
@@ -121,4 +132,5 @@ elif authentication_status:
 
                         with st.expander(f"📘 {title}"):
                             st.markdown(content, unsafe_allow_html=True)
-
+else:
+    st.warning("Please enter your username and password")
