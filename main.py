@@ -44,7 +44,7 @@ if login:
     # 🔽 Place your full Streamlit app code under this block
 
 
-    
+
 
     # Your main app code goes here ↓↓↓
     st.set_page_config(page_title="📚 Smart Study Planner", layout="centered")
