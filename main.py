@@ -5,8 +5,8 @@ import streamlit_authenticator as stauth
 
 # Example list of users (in real apps, load from MongoD
 # ✅ Corrected: Hash both passwords first
-hasher = stauth.Hasher(['test123'])
-hashed_passwords = hasher.generate()
+hasher = stauth.Hasher()
+hashed_passwords = hasher.generate(['test123'])
 
 # ✅ Then set up your user credentials
 credentials = {
