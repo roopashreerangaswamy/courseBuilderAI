@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import requests
 from datetime import datetime
-from db import users_collection, plans_collection
+from db import users_collection, plans_collection, get_user_plans
 from pymongo.errors import DuplicateKeyError
 import bcrypt
 
@@ -116,8 +116,52 @@ else:
                     st.error(f"❌ Error: {e}")
 
     # --- SAVED PLANS ---
-    st.subheader("📜 Your Saved Plans")
-    saved = plans_collection.find({"username": st.session_state["username"]}).sort("timestamp", -1)
-    for doc in saved:
-        with st.expander(f"{doc['topic']} – {doc['timestamp'].strftime('%Y-%m-%d %H:%M')}"):
-            st.markdown(doc["plan"], unsafe_allow_html=True)
+    st.subheader("📚 Your Saved Plans")
+    if "show_plans" not in st.session_state:
+        st.session_state["show_plans"] = False
+
+    if st.button("📚 Show Saved Plans"):
+        st.session_state["show_plans"] = not st.session_state["show_plans"]
+
+    if st.session_state["show_plans"]:
+        user_plans = get_user_plans(st.session_state["username"])
+
+        if user_plans:
+            for plan in user_plans:
+                st.markdown(f"### 📌 {plan['topic']}")
+                st.write(plan["plan"])  # Assuming plan['content'] has the course content
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    if st.button(f"✏️ Edit '{plan['topic']}'", key=f"edit_{plan['_id']}"):
+                        st.session_state["edit_plan"] = plan  # Store in session to trigger edit
+
+                with col2:
+                    if st.button(f"🗑️ Delete '{plan['topic']}'", key=f"delete_{plan['_id']}"):
+                        plans_collection.delete_one({"_id": plan["_id"]})
+                        st.success(f"Deleted '{plan['topic']}'")
+                        st.rerun()
+        else:
+            st.info("No saved plans yet.")
+
+        # --- EDIT PLAN ---
+        if "edit_plan" in st.session_state:
+            plan = st.session_state["edit_plan"]
+            st.subheader(f"✏️ Editing: {plan['topic']}")
+
+            new_title = st.text_input("Topic", plan["topic"])
+            new_content = st.text_area("Plan Content", plan["plan"], height=300)
+
+            if st.button("💾 Save Changes"):
+                plans_collection.update_one(
+                    {"_id": plan["_id"]},
+                    {"$set": {"topic": new_title, "content": new_content}}
+                )
+                st.success("Plan updated!")
+                del st.session_state["edit_plan"]
+                st.rerun()
+
+            if st.button("❌ Cancel"):
+                del st.session_state["edit_plan"]
+                st.rerun()

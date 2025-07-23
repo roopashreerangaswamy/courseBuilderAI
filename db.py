@@ -15,3 +15,5 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 db = client['CourseBuilderDB']
 users_collection = db['users']
 plans_collection = db['plans']
+def get_user_plans(username):
+  return list(plans_collection.find({"username": username}))
