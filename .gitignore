@@ -137,7 +137,7 @@ venv.bak/
 
 # mkdocs documentation
 /site
-.streamlit/secrets.toml
+
 
 # mypy
 .mypy_cache/
