@@ -43,7 +43,7 @@ Check out the live version of the app here:
 
 ### 1️⃣ Clone this Repo
 ```bash
-git clone https://github.com/roopashreerangaswamy/smart-course-builder.git
+git clone https://github.com/roopashreerangaswamy/courseBuilderAI.git
 cd smart-course-builder
 ```
 
