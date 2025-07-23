@@ -61,15 +61,6 @@ If using **Replit**:
 pip install -r requirements.txt
 ```
 
-> Sample `requirements.txt`:
-```
-streamlit
-pymongo
-python-dotenv
-streamlit-authenticator
-requests
-```
-
 ---
 
 ### 4️⃣ Run the App
@@ -108,17 +99,6 @@ streamlit run main.py
 - 🔒 Credentials stored using `.env` or Replit Secrets
 - 🛡️ No passwords are stored in plain text
 - 🗄️ MongoDB Atlas used with connection string hidden from codebase
-
----
-
-## 🎯 Resume Worthiness
-
-This is a **full-stack AI + Dev project** that shows:
-
-- Backend (MongoDB, Auth)
-- Frontend/UI (Streamlit, user interaction)
-- AI Integration (LLM prompts, API use)
-- Deployment (Cloud-ready)
 
 ---
 
